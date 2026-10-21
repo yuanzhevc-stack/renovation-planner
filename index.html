@@ -3,44 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>装修预算清单</title>
+<title>装修预算与工期</title>
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 16px; background: #f5f5f5; color: #333; }
-.summary { background: #fff; padding: 16px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
-.summary h2 { margin: 0 0 12px; font-size: 18px; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-.stat { background: #f8f9fa; padding: 12px; border-radius: 6px; text-align: center; }
-.stat .label { font-size: 12px; color: #666; }
-.stat .value { font-size: 20px; font-weight: 600; margin-top: 4px; }
-.stat .value.unpaid { color: #d9534f; }
-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); font-size: 14px; }
-th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #eee; }
-th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
-tr:hover { background: #fafafa; }
-.status-未付 { color: #d9534f; }
-.status-部分付 { color: #f0ad4e; }
-.status-已付 { color: #5cb85c; }
-.note { font-size: 12px; color: #888; margin-top: 8px; }
-@media (max-width: 768px) { table { font-size: 12px; } th, td { padding: 6px 4px; } }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif; margin: 0; background: #f7f8fa; color: #1d1d1f; }
+.header { padding: 16px 20px; background: #fff; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+.header .sub { font-size: 12px; color: #888; margin-top: 2px; }
+.badge { background: #eef2ff; color: #4f46e5; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+.summary { margin: 16px; background: #4a6fa5; color: #fff; border-radius: 12px; padding: 16px; }
+.summary .warn { background: #fff; color: #4a6fa5; display: inline-block; padding: 4px 12px; border-radius: 16px; font-size: 13px; margin-bottom: 12px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+.stat { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; }
+.stat .label { font-size: 12px; opacity: 0.9; }
+.stat .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+.progress-wrap { margin-top: 8px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+.progress { height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; }
+.progress-bar { height: 100%; background: #fff; border-radius: 3px; width: 75.6%; }
+.limit { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+.tabs { display: flex; gap: 8px; margin: 0 16px 12px; }
+.tab { padding: 8px 20px; background: #fff; border-radius: 8px; font-weight: 500; cursor: pointer; }
+.tab.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.filters { display: flex; gap: 8px; margin: 0 16px 16px; flex-wrap: wrap; }
+.filter { background: #fff; padding: 6px 12px; border-radius: 6px; font-size: 13px; border: 1px solid #e5e5e5; }
+.categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; padding: 0 16px 32px; }
+.cat { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.cat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.cat-name { font-size: 16px; font-weight: 600; }
+.cat-total { font-size: 18px; font-weight: 600; }
+.cat-meta { font-size: 12px; color: #888; margin-bottom: 12px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; }
+.tag.p0 { background: #fee2e2; color: #dc2626; }
+.tag.p1 { background: #fef3c7; color: #d97706; }
+.tag.p2 { background: #f3f4f6; color: #6b7280; }
+.tag.room { background: #dbeafe; color: #2563eb; }
+.tag.status-未付 { background: #fee2e2; color: #dc2626; }
+.tag.status-部分付 { background: #fef3c7; color: #d97706; }
+.tag.status-已付 { background: #dcfce7; color: #16a34a; }
+.item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.item:last-child { border-bottom: none; }
+.item-name { font-weight: 500; }
+.item-right { text-align: right; }
+.item-actual { font-weight: 600; }
+.item-budget { font-size: 12px; color: #888; }
+@media (max-width: 768px) { .stats { grid-template-columns: 1fr 1fr; } .categories { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
+<div class="header">
+  <div>
+    <h1>装修预算与工期</h1>
+    <div class="sub">4K 竖屏工作台 · 预算、付款、施工计划一屏管理</div>
+  </div>
+  <div class="badge">项目 1</div>
+</div>
 <div class="summary">
-<h2>装修预算摘要</h2>
-<div class="stats">
-<div class="stat"><div class="label">总预算</div><div class="value">¥469,110</div></div>
-<div class="stat"><div class="label">实际支出</div><div class="value">¥340,398</div></div>
-<div class="stat"><div class="label">已付款</div><div class="value">¥263,251</div></div>
-<div class="stat"><div class="label unpaid">未付</div><div class="value unpaid">¥206,373</div></div>
+  <div class="warn">预算接近上限，注意控制</div>
+  <div class="stats">
+    <div class="stat"><div class="label">总预算</div><div class="value">¥469,110</div></div>
+    <div class="stat"><div class="label">实际支出</div><div class="value">¥340,398</div></div>
+    <div class="stat"><div class="label">已付款</div><div class="value">¥263,251</div></div>
+    <div class="stat"><div class="label">未付</div><div class="value">¥206,373</div></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span>上限使用率</span><span>75.6%</span></div>
+    <div class="progress"><div class="progress-bar"></div></div>
+    <div class="limit">设定上限 ¥450,000</div>
+  </div>
 </div>
-<div class="note">开工：5月9日　预计完工：8月31日</div>
+<div class="tabs">
+  <div class="tab active">预算</div>
+  <div class="tab">工期</div>
 </div>
-<table>
-<thead>
-<tr><th>房间</th><th>类别</th><th>项目</th><th>优先级</th><th>状态</th><th>预算</th><th>实际</th><th>已付</th><th>未付</th><th>备注</th></tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+<div class="filters">
+  <div class="filter">完整</div>
+  <div class="filter">全部房间</div>
+  <div class="filter">全部优先级</div>
+  <div class="filter">全部付款状态</div>
+  <div class="filter">搜索</div>
+</div>
+<div class="categories" id="categories"></div>
 <script>
 const items = [
 ["全屋","当家施工","油漆人工","P0","未付",17000,0,0,17000,""],
@@ -61,7 +105,7 @@ const items = [
 ["玄关","家电","自动上下水洗地机","P2","未付",3000,0,0,3000,""],
 ["北书房","家电","投影仪","P2","未付",3000,0,0,3000,""],
 ["主卧","家电","主卧投影仪","P2","未付",3000,0,0,3000,""],
-["主卧","家具","床","P0","未付",3000,0,0,3000,"【请认真装修卧室，它装的是你1/3人生】https://www.bilibili.com/video/BV1dz5v6YE9x?vd_source=36a90e742d76ed964e434912e9691711"],
+["主卧","家具","床","P0","未付",3000,0,0,3000,""],
 ["北书房","橱柜","收纳柜子","P1","未付",2000,0,0,2000,""],
 ["厨房","灯具","软膜天花","P0","未付",2000,0,0,2000,""],
 ["厨房","其他施工","珐琅板","P0","未付",2000,0,0,2000,""],
@@ -145,11 +189,40 @@ const items = [
 ["主卧","家具","床头柜B","P0","已付",0,0,0,0,""],
 ["次卫/洗衣房","卫浴","坐便器","P0","已付",0,0,0,0,""]
 ];
-const tbody = document.getElementById('tbody');
-items.forEach(row => {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td class="status-${row[4]}">${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td><td>${row[8]}</td><td>${row[9]}</td>`;
-  tbody.appendChild(tr);
+const groups = {};
+items.forEach(r => {
+  const cat = r[1];
+  if (!groups[cat]) groups[cat] = [];
+  groups[cat].push(r);
+});
+const container = document.getElementById('categories');
+Object.keys(groups).forEach(cat => {
+  const list = groups[cat];
+  const totalActual = list.reduce((s, r) => s + (r[6] || 0), 0);
+  const totalBudget = list.reduce((s, r) => s + (r[5] || 0), 0);
+  const div = document.createElement('div');
+  div.className = 'cat';
+  let html = `<div class="cat-header"><div class="cat-name">${cat}</div><div class="cat-total">¥${totalActual.toLocaleString()}</div></div>`;
+  html += `<div class="cat-meta">${list.length} 项 · 分类预算 ¥${totalBudget.toLocaleString()}</div>`;
+  list.forEach(r => {
+    const [room, _, name, pri, status, budget, actual] = r;
+    html += `<div class="item">
+      <div>
+        <div class="item-name">${name}</div>
+        <div class="tags">
+          <span class="tag ${pri.toLowerCase()}">${pri}</span>
+          <span class="tag room">${room}</span>
+          <span class="tag status-${status}">${status}</span>
+        </div>
+      </div>
+      <div class="item-right">
+        <div class="item-actual">¥${(actual||0).toLocaleString()}</div>
+        <div class="item-budget">预算 ¥${(budget||0).toLocaleString()}</div>
+      </div>
+    </div>`;
+  });
+  div.innerHTML = html;
+  container.appendChild(div);
 });
 </script>
 </body>
